@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1iyngbz" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.23.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.5.0">
+  <bpmn:process id="order-service-v4" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:startEvent id="InitEventOrder" name="InitEventOrder">
+      <bpmn:outgoing>InitFlowOrder</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="orderVerificationService" name="orderVerificationService" camunda:delegateExpression="${orderVerificationService}">
+      <bpmn:extensionElements />
+      <bpmn:incoming>flowStartService</bpmn:incoming>
+      <bpmn:outgoing>FluxoVerification</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EventFinalCreated" name="EventFinalCreated">
+      <bpmn:incoming>FlowFinalCreated</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="orderCancelled" name="orderCancelled" camunda:delegateExpression="${orderCancelled}">
+      <bpmn:incoming>FluxoFalha</bpmn:incoming>
+      <bpmn:outgoing>FluxoFinalCancelled</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EventlFinalCancelled" name="EventlFinalCancelled">
+      <bpmn:incoming>FluxoFinalCancelled</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="FluxoFinalCancelled" name="FluxoFinalCancelled" sourceRef="orderCancelled" targetRef="EventlFinalCancelled" />
+    <bpmn:serviceTask id="orderCreated" name="orderCreated" camunda:delegateExpression="${orderCreated}">
+      <bpmn:incoming>FluxoFeliz</bpmn:incoming>
+      <bpmn:outgoing>FlowFinalCreated</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="FlowFinalCreated" name="FlowFinalCreated" sourceRef="orderCreated" targetRef="EventFinalCreated" />
+    <bpmn:exclusiveGateway id="GatewayExclusivo" name="GatewayExclusivo">
+      <bpmn:incoming>FluxoVerification</bpmn:incoming>
+      <bpmn:outgoing>FluxoFeliz</bpmn:outgoing>
+      <bpmn:outgoing>FluxoFalha</bpmn:outgoing>
+      <bpmn:outgoing>FluxoCheck</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="FluxoVerification" sourceRef="orderVerificationService" targetRef="GatewayExclusivo" />
+    <bpmn:sequenceFlow id="FluxoFeliz" name="APPROVED" sourceRef="GatewayExclusivo" targetRef="orderCreated">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${orderStatus == 'APPROVED'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="FluxoFalha" name="SUSPECT" sourceRef="GatewayExclusivo" targetRef="orderCancelled">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${orderStatus == 'SUSPECT'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="orderIncident" name="orderIncident" camunda:delegateExpression="${orderIncident}">
+      <bpmn:incoming>FluxoCheck</bpmn:incoming>
+      <bpmn:outgoing>FluxoFinalCheck</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="FluxoCheck" name="CHECK" sourceRef="GatewayExclusivo" targetRef="orderIncident">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${orderStatus == 'CHECK'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EventCheckFinal" name="EventCheckFinal">
+      <bpmn:incoming>FluxoFinalCheck</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="FluxoFinalCheck" name="FluxoFinalCheck" sourceRef="orderIncident" targetRef="EventCheckFinal" />
+    <bpmn:userTask id="orderStartService" name="orderStartService">
+      <bpmn:incoming>InitFlowOrder</bpmn:incoming>
+      <bpmn:outgoing>flowStartService</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="InitFlowOrder" name="InitFlowOrder" sourceRef="InitEventOrder" targetRef="orderStartService" />
+    <bpmn:sequenceFlow id="flowStartService" name="flowStartService" sourceRef="orderStartService" targetRef="orderVerificationService" />
+  </bpmn:process>
+  <bpmn:message id="Message_21lulo5" name="Message_21lulo5" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="order-service-v4">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="InitEventOrder">
+        <dc:Bounds x="179" y="159" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="161" y="202" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1k7p5yf_di" bpmnElement="orderVerificationService">
+        <dc:Bounds x="490" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1uzo228_di" bpmnElement="EventFinalCreated">
+        <dc:Bounds x="1042" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1018" y="142" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lokzol_di" bpmnElement="orderCancelled">
+        <dc:Bounds x="840" y="190" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0iisgc7_di" bpmnElement="EventlFinalCancelled">
+        <dc:Bounds x="1042" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1017" y="255" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0x5j4xm" bpmnElement="orderCreated">
+        <dc:Bounds x="840" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_11lzjc1_di" bpmnElement="GatewayExclusivo" isMarkerVisible="true">
+        <dc:Bounds x="665" y="152" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="727" y="167" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1wdwzlr" bpmnElement="orderIncident">
+        <dc:Bounds x="840" y="320" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13ma9k7_di" bpmnElement="EventCheckFinal">
+        <dc:Bounds x="1042" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1018" y="385" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1jpd5qj_di" bpmnElement="orderStartService">
+        <dc:Bounds x="270" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0qjx6s7_di" bpmnElement="FluxoFinalCancelled">
+        <di:waypoint x="940" y="230" />
+        <di:waypoint x="1042" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="949" y="212" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13stb1h_di" bpmnElement="FlowFinalCreated">
+        <di:waypoint x="940" y="117" />
+        <di:waypoint x="1042" y="117" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="948" y="99" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r8i49k_di" bpmnElement="FluxoVerification">
+        <di:waypoint x="590" y="177" />
+        <di:waypoint x="665" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0amdksz_di" bpmnElement="FluxoFeliz">
+        <di:waypoint x="690" y="152" />
+        <di:waypoint x="690" y="117" />
+        <di:waypoint x="840" y="117" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="729" y="103" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15rvu8a_di" bpmnElement="FluxoFalha">
+        <di:waypoint x="690" y="202" />
+        <di:waypoint x="690" y="230" />
+        <di:waypoint x="840" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="734" y="213" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18n37ux_di" bpmnElement="FluxoCheck">
+        <di:waypoint x="690" y="202" />
+        <di:waypoint x="690" y="360" />
+        <di:waypoint x="840" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="740" y="343" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gpiaml_di" bpmnElement="FluxoFinalCheck">
+        <di:waypoint x="940" y="360" />
+        <di:waypoint x="1042" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="950" y="342" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zmub7s_di" bpmnElement="InitFlowOrder">
+        <di:waypoint x="215" y="177" />
+        <di:waypoint x="270" y="177" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="209" y="159" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0av772z_di" bpmnElement="flowStartService">
+        <di:waypoint x="370" y="177" />
+        <di:waypoint x="490" y="177" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="390" y="159" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
